@@ -38,7 +38,7 @@ class Spree::SitemapController < Spree::BaseController
         nav.each do |k, v| 
           xml.url {
             xml.loc public_dir + v['link']
-            xml.lastmod v['updated'].xmlschema			  #change timestamp of last modified
+            xml.lastmod v['updated'].xmlschema #change timestamp of last modified
             xml.changefreq 'weekly'
             xml.priority '0.8'
           } 
@@ -53,7 +53,7 @@ class Spree::SitemapController < Spree::BaseController
       tinfo = Hash.new
       tinfo['name'] = taxon.name
       tinfo['depth'] = taxon.permalink.split('/').size
-      tinfo['link'] = 't/' + taxon.permalink 
+      tinfo['link'] = 't/' + taxon.permalink
       tinfo['updated'] = taxon.updated_at
       nav[taxon.permalink] = tinfo
     end
@@ -76,8 +76,9 @@ class Spree::SitemapController < Spree::BaseController
     return nav if @pages.empty?
     
     @pages.each do |page|
-      nav[page.slug] = {'name' => page.title,
-                        'link' => page.slug.gsub(/^\//, ''),
+      page_slug = page.respond_to?(:slug) ? page.slug : page.path
+      nav[page_slug] = {'name' => page.title,
+                        'link' => page_slug.gsub(/^\//, ''),
                         'updated' => page.updated_at}
     end
     nav
@@ -86,14 +87,16 @@ class Spree::SitemapController < Spree::BaseController
   def _select_static_pages
     pages = []
     begin
-      slugs_to_reject = ["/on-main-page"]
+      slugs_to_reject = ["/on-main-page", "/"]
       Spree::Page.visible.each do |page|
-        pages << page unless slugs_to_reject.include?(page.slug)
+        page_slug = page.respond_to?(:slug) ? page.slug : page.path
+        pages << page unless slugs_to_reject.include?(page_slug)
       end
       
     rescue NameError
       pages = []
     end
     pages
+    
   end
 end
